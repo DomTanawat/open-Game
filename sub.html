@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bitnaja</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+  }
+  .container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 400px;
+    padding: 20px 30px;
+    box-sizing: border-box;
+  }
+  h2 {
+    text-align: center;
+    color: #333;
+  }
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .game-item {
+    cursor: pointer;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+    border: 2px solid transparent;
+  }
+  .game-item:hover, .game-item.selected {
+    transform: scale(1.05);
+    border-color: #38ef7d;
+  }
+  .game-item img {
+    width: 100%;
+    display: block;
+  }
+  .game-name {
+    text-align: center;
+    margin-top: 6px;
+    font-weight: 600;
+    color: #333;
+  }
+  .prices {
+    margin: 15px 0;
+    display: none;
+    text-align: center;
+  }
+  .prices.active {
+    display: block;
+  }
+  .price-button {
+    background: #38ef7d;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    margin: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+  .price-button:hover {
+    background: #2bc66f;
+  }
+  .price-button.selected {
+    background: #27ae60;
+  }
+  #topup-btn {
+    width: 100%;
+    background-color: #38ef7d;
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+  }
+  #topup-btn:hover {
+    background-color: #2bc66f;
+  }
+  #topup-btn:disabled {
+    background-color: #a7d9b1;
+    cursor: not-allowed;
+  }
+  #message {
+    margin-top: 15px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #message.error {
+    color: #e74c3c;
+  }
+  #message.success {
+    color: #27ae60;
+  }
+</style>
+</head>
+<body>
+
+<div class="container" role="main" aria-label="เติมเกมด้วย BitKub">
+  <h2>เติมเกมต้อง BitKub</h2>
+
+  <div class="game-grid" aria-label="เลือกเกม">
+    <!-- เกมจะเพิ่มจาก JS -->
+  </div>
+
+  <div class="prices" aria-live="polite" aria-label="เลือกราคาเติมเงิน">
+    <p>เลือกจำนวนเงินเติม:</p>
+    <div>
+      <!-- ปุ่มราคาเติมเงิน -->
+    </div>
+  </div>
+
+  <!-- ✅ ช่องใส่ไอดี -->
+  <div id="player-id-container" style="display:none; margin-top: 10px;">
+    <label for="player-id" style="font-weight: 600;">กรอกไอดีผู้เล่น:</label>
+    <input type="text" id="player-id" name="player-id" placeholder="เช่น 123456789" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 6px; box-sizing: border-box;" />
+  </div>
+
+  <button id="topup-btn" disabled>เติมเงิน</button>
+
+  <p id="message" role="alert" aria-live="assertive"></p>
+</div>
+
+<script>
+  const games = [
+    { id: "ROV", name: "ROV", img: "unnamed.png", prices: [100,225,280 , 350, 550,660] },
+    { id: "PUBG MOBILE  ", name: "PUBG MOBILE", img: "channels4_profile.jpg", prices: [120, 220, 250, 300,350,450] },
+    { id: "FreeFire", name: "Free Fire", img: "gametiles_com.dts.freefireth.jpg", prices: [50, 120, 200,250,300,350] },
+    { id: "League of Legends: PC", name: "League of Legends: PC", img: "https://egamersworld.com/cdn-cgi/image/width=690,quality=75,format=webp/uploads/blog/1/17/1735564816859_1735564816859.webp", prices: [150,200, 350,450,600] },
+    { id: "Genshin", name: "Genshin Impact", img: "https://m.media-amazon.com/images/I/51XubCSPpZL._SX342_SY445_.jpg", prices: [150, 250, 325,500] },
+    { id: "Valorant", name: "Valorant", img: "https://store-images.s-microsoft.com/image/apps.21507.13663857844271189.4c1de202-3961-4c40-a0aa-7f4f1388775a.20ed7782-0eda-4f9d-b421-4cc47492edc6", prices: [80, 160, 300, 500] },
+    { id: "deltaforce.garena", name: "deltaforce.garena", img: "https://game.intel.com/wp-content/uploads/2024/11/DF-Article-1.jpg?x79477&x79477", prices: [125, 260, 375,450,550] },
+  ];
+
+  const gameGrid = document.querySelector(".game-grid");
+  const pricesDiv = document.querySelector(".prices > div");
+  const pricesContainer = document.querySelector(".prices");
+  const playerIdContainer = document.getElementById("player-id-container");
+  const playerIdInput = document.getElementById("player-id");
+  const topupBtn = document.getElementById("topup-btn");
+  const messageEl = document.getElementById("message");
+
+  let selectedGame = null;
+  let selectedPrice = null;
+
+  function renderGames() {
+    games.forEach(game => {
+      const div = document.createElement("div");
+      div.classList.add("game-item");
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-pressed", "false");
+      div.setAttribute("aria-label", game.name);
+      div.dataset.id = game.id;
+
+      div.innerHTML = `
+        <img src="${game.img}" alt="${game.name} Logo" />
+        <div class="game-name">${game.name}</div>
+      `;
+
+      div.addEventListener("click", () => selectGame(game.id));
+      div.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          selectGame(game.id);
+        }
+      });
+
+      gameGrid.appendChild(div);
+    });
+  }
+
+  function selectGame(gameId) {
+    selectedGame = games.find(g => g.id === gameId);
+    selectedPrice = null;
+    messageEl.textContent = "";
+    messageEl.className = "";
+
+    document.querySelectorAll(".game-item").forEach(item => {
+      if (item.dataset.id === gameId) {
+        item.classList.add("selected");
+        item.setAttribute("aria-pressed", "true");
+      } else {
+        item.classList.remove("selected");
+        item.setAttribute("aria-pressed", "false");
+      }
+    });
+
+    renderPrices(selectedGame.prices);
+    playerIdContainer.style.display = "block";
+    playerIdInput.value = "";
+    topupBtn.disabled = true;
+  }
+
+  function renderPrices(prices) {
+    pricesDiv.innerHTML = "";
+    pricesContainer.classList.add("active");
+
+    prices.forEach(price => {
+      const btn = document.createElement("button");
+      btn.classList.add("
